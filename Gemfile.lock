@@ -2,7 +2,9 @@ GEM
   remote: http://rubygems.org/
   specs:
     daemons (1.1.8)
+    dalli (2.1.0)
     eventmachine (0.12.10)
+    memcachier (0.0.1)
     rack (1.4.1)
     rack-protection (1.2.0)
       rack
@@ -20,5 +22,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  dalli
+  memcachier
   sinatra
   thin
