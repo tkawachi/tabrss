@@ -36,15 +36,15 @@ def items_api_to_rdf(cache_key, api_url, title, description, link)
         rss_item.title = item['title']
         rss_item.link = item['site_url']
         rss_item.date = item['created_at']
-        rss_item.description = item['description']
-        begin
-          image_url = item['image_urls'][0]['crop_L'] rescue nil
-          rss_item.enclosure.url = image_url
-          rss_item.enclosure.type = 'image/jpeg'
-          rss_item.enclosure.length = size_of_image(image_url)
-        rescue
-          # Do nothing
-        end
+        image_url = item['image_urls'][0]['crop_M'] rescue nil
+        rss_item.description = "<img src=\"#{image_url}\" style=\"float:left;\">#{item['description']}"
+        #begin
+        #  rss_item.enclosure.url = image_url
+        #  rss_item.enclosure.type = 'image/jpeg'
+        #  rss_item.enclosure.length = size_of_image(image_url)
+        #rescue
+        #  # Do nothing
+        #end
       end
     end
 
