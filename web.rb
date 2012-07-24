@@ -13,6 +13,11 @@ RSS_VERSION = '2.0'
 APP_URL = 'http://tabrss.heroku.com/'
 TAB_API_BASE = 'http://tab.do/api/1/'
 
+def size_of_image(url)
+  # HEAD request にすれば速くなる
+  open(url).read.size
+end
+
 get '/' do
   'This is test to distribute rss for tab'
 end
@@ -22,10 +27,10 @@ get '/popular.rdf' do
   content_type 'application/xml'
 
   cache_key = "#{VERSION}/popular"
-  cache = Dalli::Client.new(nil, expires_in: 120, compress: true)
+  cache = Dalli::Client.new(nil, expires_in: 300, compress: true)
   resp = cache.get(cache_key) rescue nil
   if resp.nil?
-    url = "#{TAB_API_BASE}items/popular.json"
+    url = "#{TAB_API_BASE}items/popular.json?limit=20"
     logger.info("url: #{url}")
     hash = JSON.parse(open(url).read)
 
@@ -39,9 +44,14 @@ get '/popular.rdf' do
         rss_item.link = item['site_url']
         rss_item.date = item['created_at']
         rss_item.description = item['description']
-        rss_item.enclosure.url = item['image_urls'][0]['normal_L']
-        rss_item.enclosure.type = 'image/jpeg'
-        rss_item.enclosure.length = 0
+        begin
+          image_url = item['image_urls'][0]['normal_L'] rescue nil
+          rss_item.enclosure.url = item['image_urls'][0]['normal_L']
+          rss_item.enclosure.type = 'image/jpeg'
+          rss_item.enclosure.length = size_of_image(image_url)
+        rescue
+          # Do nothing
+        end
       end
     end
 
