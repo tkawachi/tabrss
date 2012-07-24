@@ -18,26 +18,19 @@ def size_of_image(url)
   open(url).read.size
 end
 
-get '/' do
-  'This is test to distribute rss for tab'
-end
-
-# Popular rss
-get '/popular.rdf' do
+def items_api_to_rdf(cache_key, api_url, title, description, link)
   content_type 'application/xml'
 
-  cache_key = "#{VERSION}/popular"
   cache = Dalli::Client.new(nil, expires_in: 300, compress: true)
   resp = cache.get(cache_key) rescue nil
   if resp.nil?
-    url = "#{TAB_API_BASE}items/popular.json?limit=10"
-    logger.info("url: #{url}")
-    hash = JSON.parse(open(url).read)
+    logger.info("url: #{api_url}")
+    hash = JSON.parse(open(api_url).read)
 
     resp = RSS::Maker.make(RSS_VERSION) do |m|
-      m.channel.title = "tab 人気のアイテム"
-      m.channel.description = "tab で今人気のアイテムを紹介"
-      m.channel.link = "#{APP_URL}popular.rdf"
+      m.channel.title = title
+      m.channel.description = description
+      m.channel.link = link
       hash['items'].each do |item|
         rss_item = m.items.new_item
         rss_item.title = item['title']
@@ -58,4 +51,29 @@ get '/popular.rdf' do
     cache.set(cache_key, resp) rescue nil
   end
   resp.to_s
+end
+
+get '/' do
+  'This is test to distribute rss for tab'
+end
+
+# Popular rss
+get '/popular.rdf' do
+  items_api_to_rdf(
+      "#{VERSION}/popular",
+      "#{TAB_API_BASE}items/popular.json?limit=10",
+      "tab 人気のアイテム",
+      "tab で今人気のアイテムを紹介",
+      "#{APP_URL}popular.rdf"
+  )
+end
+
+get '/latest.rdf' do
+  items_api_to_rdf(
+      "#{VERSION}/latest",
+      "#{TAB_API_BASE}items/latest.json?limit=10",
+      "tab 最新のアイテム",
+      "tab で今投稿されたばかりのアイテムを紹介",
+      "#{APP_URL}latest.rdf"
+  )
 end
