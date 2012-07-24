@@ -30,7 +30,7 @@ get '/popular.rdf' do
   cache = Dalli::Client.new(nil, expires_in: 300, compress: true)
   resp = cache.get(cache_key) rescue nil
   if resp.nil?
-    url = "#{TAB_API_BASE}items/popular.json?limit=20"
+    url = "#{TAB_API_BASE}items/popular.json?limit=10"
     logger.info("url: #{url}")
     hash = JSON.parse(open(url).read)
 
@@ -45,8 +45,8 @@ get '/popular.rdf' do
         rss_item.date = item['created_at']
         rss_item.description = item['description']
         begin
-          image_url = item['image_urls'][0]['normal_L'] rescue nil
-          rss_item.enclosure.url = item['image_urls'][0]['normal_L']
+          image_url = item['image_urls'][0]['crop_L'] rescue nil
+          rss_item.enclosure.url = image_url
           rss_item.enclosure.type = 'image/jpeg'
           rss_item.enclosure.length = size_of_image(image_url)
         rescue
