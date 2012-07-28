@@ -8,14 +8,22 @@ require 'memcachier'
 require 'dalli'
 
 VERSION = '0.1'
-USE_CACHE = false
-CACHE_VERSION = '0.2'
-CACHE_EXPIRES_IN = 300
-PAGING_LIMIT = 30
 RSS_VERSION = '2.0'
 
-APP_URL = 'http://tabrss.heroku.com/'
-TAB_API_BASE = 'http://tab.do/api/1/'
+USE_CACHE = true
+CACHE_VERSION = '0.2'
+CACHE_EXPIRES_IN = 10
+
+APP_URL = 'http://tabrss.heroku.com'
+TAB_URL = 'http://tab.do'
+
+API_TITLES = [
+    [%r'/items/popular.json$', 'tab 人気のアイテム'],
+    [%r'/items/latest.json$', 'tab 最新のアイテム'],
+    [%r'/users/\d+/items.json$', 'tab ユーザのアイテム'],
+    [%r'/streams/\d+/items.json$', 'tab 内のアイテム'],
+    [%r'/areas/\d+/items.json$', 'エリア内のアイテム']
+]
 
 def size_of_image(url)
   # HEAD request にすれば速くなる
@@ -37,26 +45,19 @@ def items_api_to_rdf(cache_key, api_url, title, description, link)
 
     resp = RSS::Maker.make(RSS_VERSION) do |m|
       m.channel.title = title
-      m.channel.description = description
+      m.channel.description = description || title
       m.channel.link = link
       hash['items'].each do |item|
         rss_item = m.items.new_item
         rss_item.title = item['title']
         rss_item.link = item['site_url']
         rss_item.date = item['created_at']
-        image_url = item['image_urls'][0]['original'] rescue nil
+        image_url = item['image_urls'][0]['normal_L'] rescue nil
         if image_url
           rss_item.description = "<img src=\"#{image_url}\" style=\"float:left;\">#{item['description']}"
         else
           rss_item.description = item['description']
         end
-        #begin
-        #  rss_item.enclosure.url = image_url
-        #  rss_item.enclosure.type = 'image/jpeg'
-        #  rss_item.enclosure.length = size_of_image(image_url)
-        #rescue
-        #  # Do nothing
-        #end
       end
     end
 
@@ -68,26 +69,57 @@ def items_api_to_rdf(cache_key, api_url, title, description, link)
 end
 
 get '/' do
-  'This is test to distribute rss for tab'
+  popular_rss = "#{APP_URL}/api/1/items/popular.json"
+  latest_rss = "#{APP_URL}/api/1/items/latest.json"
+  user_rss = "#{APP_URL}/api/1/users/57/items.json"
+  shibuya_rss = "#{APP_URL}/api/1/areas/6/items.json"
+  <<-EOS
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>RSS for tab</title>
+<h1>RSS for tab</h1>
+このプログラムは <a href="#{TAB_URL}">tab.do</a> で提供されているアイテム一覧 API を RSS に変換して表示します。
+<a href="http://tonchidot.github.com/tab-api-docs/api/index.html">Items API</a>の中で JSON のトップ要素として
+items が返ってくる API を変換することができます。
+tab API のホスト名部分を #{APP_URL} に変更してリクエストしてください。
+<p>
+トップに items がない API を叩くとエラーになります ^^;
+<p>
+<ul>
+<li> 人気のアイテム: <a href="#{popular_rss}">#{popular_rss}</a>
+<li> 最新のアイテム: <a href="#{latest_rss}">#{latest_rss}</a>
+<li> フォローしているアイテム (57 の部分は私の user id です。
+  自分の user id は tab のプロファイル画面を開いて URL を確認してください):
+  <a href="#{user_rss}">#{user_rss}</a>
+<li> 渋谷のアイテム (6 の部分は渋谷の area id です。
+  他のエリアの id は http://tab.do/api/1/areas を見ればわかるかも?):
+  <a href="#{shibuya_rss}">#{shibuya_rss}</a>
+</ul>
+  EOS
 end
 
-# Popular rss
-get '/popular.rdf' do
-  items_api_to_rdf(
-      "#{CACHE_VERSION}/popular",
-      "#{TAB_API_BASE}items/popular.json?limit=#{PAGING_LIMIT}",
-      "tab 人気のアイテム",
-      "tab で今人気のアイテムを紹介",
-      "#{APP_URL}popular.rdf"
-  )
+get '/version' do
+  VERSION
 end
 
-get '/latest.rdf' do
-  items_api_to_rdf(
-      "#{CACHE_VERSION}/latest",
-      "#{TAB_API_BASE}items/latest.json?limit=#{PAGING_LIMIT}",
-      "tab 最新のアイテム",
-      "tab で今投稿されたばかりのアイテムを紹介",
-      "#{APP_URL}latest.rdf"
-  )
+def find_title(path)
+  API_TITLES.each do |title_pair|
+    regex = title_pair[0]
+    title = title_pair[1]
+    if regex =~ path
+      return title
+    end
+  end
+  return 'tab'
+end
+
+get '/api/*' do
+  path = request.path_info
+  # Specify format as JSON
+  path += ".json" unless path.end_with?(".json")
+  url = "#{TAB_URL}#{path}?#{request.query_string}"
+  cache_key = "#{CACHE_VERSION}#{url}"
+  title = find_title(path)
+  link = "#{APP_URL}#{path}?#{request.query_string}"
+  items_api_to_rdf(cache_key, url, title, nil, link)
 end
