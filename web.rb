@@ -18,6 +18,7 @@ APP_URL = 'http://tabrss.herokuapp.com'
 TAB_URL = 'http://tab.do'
 
 API_TITLES = [
+    [%r'/items/pickup.json$', 'tab おすすめのアイテム'],
     [%r'/items/popular.json$', 'tab 人気のアイテム'],
     [%r'/items/latest.json$', 'tab 最新のアイテム'],
     [%r'/users/\d+/items.json$', 'tab ユーザのアイテム'],
@@ -72,6 +73,7 @@ def items_api_to_rdf(cache_key, api_url, title, description, link)
 end
 
 get '/' do
+  pickup_rss = "#{APP_URL}/api/1/items/pickup.json"
   popular_rss = "#{APP_URL}/api/1/items/popular.json"
   latest_rss = "#{APP_URL}/api/1/items/latest.json"
   user_rss = "#{APP_URL}/api/1/users/57/items.json"
@@ -94,6 +96,7 @@ tab API のホスト名部分を #{APP_URL} に変更してリクエストして
 で眺めたりすることができます。
 <p>
 <ul>
+<li> おすすめアイテム: <a href="#{pickup_rss}">#{pickup_rss}</a>
 <li> 人気のアイテム: <a href="#{popular_rss}">#{popular_rss}</a>
 <li> 最新のアイテム: <a href="#{latest_rss}">#{latest_rss}</a>
 <li> フォローしているアイテム (57 の部分は私の user id です。
