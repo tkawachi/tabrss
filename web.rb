@@ -8,7 +8,9 @@ require 'memcachier'
 require 'dalli'
 
 VERSION = '0.1'
+USE_CACHE = false
 CACHE_VERSION = '0.2'
+CACHE_EXPIRES_IN = 300
 PAGING_LIMIT = 30
 RSS_VERSION = '2.0'
 
@@ -23,8 +25,12 @@ end
 def items_api_to_rdf(cache_key, api_url, title, description, link)
   content_type 'application/xml'
 
-  cache = Dalli::Client.new(nil, expires_in: 300, compress: true)
-  resp = cache.get(cache_key) rescue nil
+  if USE_CACHE
+    cache = Dalli::Client.new(nil, expires_in: CACHE_EXPIRES_IN, compress: true)
+    resp = cache.get(cache_key) rescue nil
+  else
+    resp = nil
+  end
   if resp.nil?
     logger.info("url: #{api_url}")
     hash = JSON.parse(open(api_url).read)
@@ -54,7 +60,9 @@ def items_api_to_rdf(cache_key, api_url, title, description, link)
       end
     end
 
-    cache.set(cache_key, resp) rescue nil
+    if USE_CACHE
+      cache.set(cache_key, resp) rescue nil
+    end
   end
   resp.to_s
 end
