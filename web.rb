@@ -31,8 +31,6 @@ def size_of_image(url)
 end
 
 def items_api_to_rdf(cache_key, api_url, title, description, link)
-  content_type 'application/xml'
-
   if USE_CACHE
     cache = Dalli::Client.new(nil, expires_in: CACHE_EXPIRES_IN, compress: true)
     resp = cache.get(cache_key) rescue nil
@@ -42,6 +40,9 @@ def items_api_to_rdf(cache_key, api_url, title, description, link)
   if resp.nil?
     logger.info("url: #{api_url}")
     hash = JSON.parse(open(api_url).read)
+    unless hash['items']
+      return "items が見つかりません。#{api_url} はアイテム一覧 API じゃないのでは？"
+    end
 
     resp = RSS::Maker.make(RSS_VERSION) do |m|
       m.channel.title = title
@@ -65,6 +66,8 @@ def items_api_to_rdf(cache_key, api_url, title, description, link)
       cache.set(cache_key, resp) rescue nil
     end
   end
+
+  content_type 'application/xml'
   resp.to_s
 end
 
