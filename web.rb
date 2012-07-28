@@ -80,6 +80,7 @@ get '/' do
 <!DOCTYPE html>
 <meta charset="utf-8">
 <title>RSS for tab</title>
+<a href="https://github.com/tkawachi/tabrss"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png" alt="Fork me on GitHub"></a>
 <h1>RSS for tab</h1>
 このプログラムは <a href="#{TAB_URL}">tab.do</a> で提供されているアイテム一覧 API を RSS に変換して表示します。
 <a href="http://tonchidot.github.com/tab-api-docs/api/index.html">Items API</a>の中で JSON のトップ要素として
