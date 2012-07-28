@@ -124,9 +124,9 @@ get '/api/*' do
   path = request.path_info
   # Specify format as JSON
   path += ".json" unless path.end_with?(".json")
-  url = "#{TAB_URL}#{path}?#{request.query_string}"
+  url = "#{TAB_URL}#{path}"
   cache_key = "#{CACHE_VERSION}#{url}"
   title = find_title(path)
-  link = "#{APP_URL}#{path}?#{request.query_string}"
+  link = "#{APP_URL}#{path}"
   items_api_to_rdf(cache_key, url, title, nil, link)
 end
