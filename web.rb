@@ -22,7 +22,7 @@ API_TITLES = [
     [%r'/items/latest.json$', 'tab 最新のアイテム'],
     [%r'/users/\d+/items.json$', 'tab ユーザのアイテム'],
     [%r'/streams/\d+/items.json$', 'tab 内のアイテム'],
-    [%r'/areas/\d+/items.json$', 'エリア内のアイテム']
+    [%r'/areas/\d+/items.json$', 'tab エリア内のアイテム']
 ]
 
 def size_of_image(url)
