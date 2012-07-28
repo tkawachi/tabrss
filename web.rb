@@ -85,6 +85,10 @@ tab API のホスト名部分を #{APP_URL} に変更してリクエストして
 <p>
 トップに items がない API を叩くとエラーになります ^^;
 <p>
+<a href="http://www.google.com/reader/view/">Google Reader</a> に登録すると
+<a href="http://itunes.apple.com/jp/app/flipboard-anatanososharunyusumagajin/id358801284?mt=8">Flipboard</a>
+で眺めたりすることができます。
+<p>
 <ul>
 <li> 人気のアイテム: <a href="#{popular_rss}">#{popular_rss}</a>
 <li> 最新のアイテム: <a href="#{latest_rss}">#{latest_rss}</a>
