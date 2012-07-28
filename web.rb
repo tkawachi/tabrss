@@ -14,7 +14,7 @@ USE_CACHE = true
 CACHE_VERSION = '0.2'
 CACHE_EXPIRES_IN = 10
 
-APP_URL = 'http://tabrss.heroku.com'
+APP_URL = 'http://tabrss.herokuapp.com'
 TAB_URL = 'http://tab.do'
 
 API_TITLES = [
