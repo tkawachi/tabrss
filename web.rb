@@ -38,7 +38,7 @@ def items_api_to_rdf(cache_key, api_url, title, description, link)
         rss_item.title = item['title']
         rss_item.link = item['site_url']
         rss_item.date = item['created_at']
-        image_url = item['image_urls'][0]['normal'] rescue nil
+        image_url = item['image_urls'][0]['original'] rescue nil
         if image_url
           rss_item.description = "<img src=\"#{image_url}\" style=\"float:left;\">#{item['description']}"
         else
